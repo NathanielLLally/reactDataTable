@@ -1,12 +1,10 @@
-/*
 import React from "react";
-import { render } from "react-dom";
+import ReactDOM from "react-dom";
 import { makeData, Logo, Tips } from "./Utils";
 
 // Import React Table
 import ReactTable from "react-table";
 import "react-table/react-table.css";
-*/
 
 class App extends React.Component {
   constructor() {
@@ -17,6 +15,7 @@ class App extends React.Component {
   }
   render() {
     const { data } = this.state;
+    console.log(data);
     return (
       <div>
         <ReactTable

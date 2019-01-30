@@ -138,36 +138,15 @@ class Table extends React.Component {
   }
 }
 
-const makeDefaultState = () => ({
-  data: [],
-  columns: [],
-  sorted: [],
-  page: 0,
-  pageSize: 10,
-  expanded: {},
-  resized: [],
-  filtered: [],
-  loading: true,
-  loadingText: "Loading..",
-  rows: 1000
-});
-
 class App extends React.Component {
   constructor(prop) {
     super(prop);
-   this.state = makeDefaultState();
-    this.rowEvent = {
-      onClick: (e, row, rowIndex) => {
-        this.setState({details: true, id:rowIndex});
-      }
-    };
-    this.fetchData = this.fetchData.bind(this);
   }
   componentDidMount() {
     console.log('App componentDidMount')
   }
 
-  fetchData(resultset) {
+  fetchData = (resultset) => {
     this.setState({loading: true});
     this.setState({loadingText: "Loading"});
     console.log("sending get request");
@@ -177,6 +156,7 @@ class App extends React.Component {
       .then(response => response.json())
       .then((result) => {
         console.log("result");
+        console.log(result);
         this.setState({
           loading: false,
           data: result.data,
@@ -198,7 +178,7 @@ class App extends React.Component {
       .then(response => response.json())
       .then((result) => {
         console.log("result");
-        //console.log(result);
+        console.log(result);
         this.setState({
           loading: false,
           data: result.data,
@@ -210,58 +190,12 @@ class App extends React.Component {
         console.log(err);
       });
   }
-  getColumns() {
-    const { data } = this.state;
-    //console.log(data);
-    if (data.length <= 0)
-      return data;
-
-    return Object.keys(data[0]).map(key => {
-      return {
-        Header: key,
-        accessor: key
-      };
-    });
-  }
   render() {
-    const columns = this.getColumns();
-    const { data } = this.state;
     return (
       <div>
-  <SearchBar handleSubmit={this.fetchData} />
-        <ReactTable
-      data={data}
-      columns={columns}
-      loading={this.state.loading}
-      loadingText={this.state.loadingText}
-      defaultPageSize={20}
-      filterable
-      className="-striped -highlight"
-      sorted={this.state.sorted}
-      page={this.state.page}
-      pageSize={this.state.pageSize}
-      expanded={this.state.expanded}
-      resized={this.state.resized}
-      filtered={this.state.filtered}
-      // Callbacks
-      onSortedChange={sorted => this.setState({ sorted })}
-      onPageChange={page => this.setState({ page })}
-      onPageSizeChange={(pageSize, page) =>
-        this.setState({ page, pageSize })}
-      onExpandedChange={expanded => this.setState({ expanded })}
-      onResizedChange={resized => this.setState({ resized })}
-      onFilteredChange={filtered => this.setState({ filtered })}
-        />
-
+  <SearchBar handleSubmit={this.fetchColumns} />
+  <Table fetchData={this.fetchData}/>
         <br />
-          <pre>
-          <code>
-            <strong>this.state ===</strong>{" "}
-            {JSON.stringify(this.state.resized, null, 2)}
-            {JSON.stringify(this.state.sorted, null, 2)}
-            {JSON.stringify(this.state.filtered, null, 2)}
-          </code>
-        </pre>
         <Tips />
         <Logo />
       </div>
