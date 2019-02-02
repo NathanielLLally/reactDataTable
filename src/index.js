@@ -52,7 +52,9 @@ class Field extends React.Component {
     this.setState({hasFocus: true})
   }
   validate(str){
-    return str.match(this.props.validation);
+    if (this.props.validation != null)
+      return str.match(this.props.validation);
+    return false;
   }
   render(){
     //Add-ons for the component
@@ -92,25 +94,37 @@ class SearchBar extends React.Component {
   constructor(props) {
     super(props);
     this.fields = [
-    {name:'resultset', type:'input', subtype:'text', label:"ResultSet", icon:"user", validation:'name', required:true, validMessage:"", valid:false},
-    {name:'message', type:'textarea', icon:"comment", validation:'message', label:"ResultSet Command Chain", required:false, validMessage:"", valid:true}
+    {name:'keywords', type:'input', subtype:'text', label:"Keywords", icon:"user", validation:'name', required:true, validMessage:"", valid:false},
+    {name:'minprice', type:'input', subtype:'text', label:"Min Price", icon:"user", validation:'number', required:false, validMessage:"", valid:false, value:0},
+    {name:'maxprice', type:'input', subtype:'text', label:"Max Price", icon:"user", validation:'number', required:false, validMessage:"", valid:false, value:100},
     ]
         this.validation={
       /*whatever regex rules you want. There's no reason to restrict validation to a regex but I'm laaaaazy.*/ 
       email:/[a-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-z0-9-]+(\.[a-z0-9-]+)*/,
       name:/[a-zA-Z0-9]{3,}/,
-      message:/.?/
+      message:/.?/,
+      number:/\d+/
     }
-    this.state={};
+    this.state = makeDefaultState()
     this.fields.map(field=>{
-      this.state[field.name] = {content:false, valid:true}
+      this.state[field.name] = {content:false, valid:false}
     });
   }
     
   handleSubmit = (event) => {
     event.preventDefault();
-    const resultset = event.target.resultset.value;
-    this.props.handleSubmit(resultset);
+    console.log(this.state);
+    console.log(this.fields);
+    console.log(event);
+    let p = {};
+    p = Object.keys(this.state).filter(k => this.state[k].valid);
+    let params = {}
+    p.map( k => params[k] = event.target[k].value);
+    params.rows = this.state.pageSize
+    params.page = this.state.page
+//    event.target.keywords.value;
+    console.log(params);
+    this.props.handleSubmit(params);
   };
   updateField(field, value, valid){
     var obj = {};
@@ -120,7 +134,9 @@ class SearchBar extends React.Component {
   validate(e){
     e.preventDefault();
     for(let i in this.state){
-      if(!this.state[i].valid) return false;
+     if (this.fields[i] != null)
+        if(!this.state[i].valid && this.fields[i].required) return false;
+//        if(!this.state[i].valid) return false;
     }
     console.log('all clear')
     return true;
@@ -130,7 +146,7 @@ class SearchBar extends React.Component {
   }
   renderFields(){
     return this.fields.map(field=>{
-      return <Field type={field.type} subtype={field.subtype} name={field.name} label={field.label} required={field.required} key={field.name} updateFunc={this.updateField.bind(this)} validation={this.validation[field.validation]} validMessage={field.validMessage} icon={field.icon} />
+      return <Field type={field.type} subtype={field.subtype} name={field.name} label={field.label} required={field.required} key={field.name} updateFunc={this.updateField.bind(this)} validation={this.validation[field.validation]} validMessage={field.validMessage} icon={field.icon} value={field.value}/>
     })
   }
   render() {
@@ -147,87 +163,6 @@ class SearchBar extends React.Component {
   }
 }
 
-class Table extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      loading: true,
-      loadingText: "Loading..",
-      data: [],
-      columns: [],
-      details: false,
-      id: 0,
-      page: 1,
-      rows: 1000,
-    }
-    this.rowEvent = {
-      onClick: (e, row, rowIndex) => {
-        this.setState({details: true, id:rowIndex});
-      }
-    };
-    this.fetchData = this.props.fetchData.bind(this);
-  }
-    
-  fetchDataPost(state, instance) {
-    this.setState({loading: true});
-    this.setState({loadingText: "Loading"});
-    console.log("sending post request");
-    //orkerGlobalScope.fetch("http://yogapants.ewb.ai:8080/data?test=test", {
-
-    fetch("http://yogapants.ewb.ai:8080/data", {
-      method : 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      mode: "no-cors", // no-cors, cors, *same-origin
-      cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-      credentials: "same-origin", // include, *same-origin, omit
-      body: JSON.stringify({
-        resultset: 'FindingCategory',
-        search: { },
-        attrs: { }
-      })
-    })
-      .then(response => response.json())
-      .then((result) => {
-        console.log(result);
-        this.setState({
-          loading: false,
-          data: result.data,
-          columns: result.columns
-
-        });
-      })
-      .catch((err) => {
-        console.log("API Call returned invalid JSON");
-        console.log(err);
-      });
-  }
-
-  componentMount() {
-    console.log('Table I was triggered during componentDidMount')
-  }
-  render() {
-    const { data, columns } = this.state;
-    return (
-        <ReactTable
-      data={data}
-      columns={columns}
-      loading={this.state.loading}
-      loadingText={this.state.loadingText}
-      showPageSizeOptions={false}
-      defaultPageSize={18}
-      showPageJump={false}
-      sortable={true}
-      multiSort={true}
-      resizable={true}
-      filterable={true}
-      onFetchData={this.fetchData}
-        />
-    );
-  }
-}
-
 const makeDefaultState = () => ({
   data: [],
   columns: [],
@@ -239,7 +174,7 @@ const makeDefaultState = () => ({
   filtered: [],
   loading: true,
   loadingText: "Loading..",
-  rows: 1000
+  rows: 10
 });
 
 class App extends React.Component {
@@ -257,20 +192,26 @@ class App extends React.Component {
     console.log('App componentDidMount')
   }
 
-  fetchData(resultset) {
+  fetchData(params) {
     this.setState({loading: true});
     this.setState({loadingText: "Loading"});
-    console.log("sending get request");
     //orkerGlobalScope.fetch("http://yogapants.ewb.ai:8080/data?test=test", {
 
-    fetch("http://yogapants.ewb.ai:8080/data?resultset="+resultset)
+    let array = Object.keys(params).map( key => key+'='+params[key]);
+    console.log('fetchData: '+array);
+    let Qstr = array.join('&');
+    if (Qstr.length > 0)
+      Qstr = '?'+Qstr;
+
+    console.log("sending get request, Query String: ["+Qstr+"]");
+    fetch("http://mx.ewb.ai:8080/myapp"+Qstr)
       .then(response => response.json())
       .then((result) => {
         console.log("result");
         this.setState({
           loading: false,
           data: result.data,
-          columns: result.columns
+          pages: Math.ceil(result.data.length / this.state.pageSize)
         });
       })
       .catch((err) => {
@@ -284,15 +225,14 @@ class App extends React.Component {
     console.log("sending get request");
     //orkerGlobalScope.fetch("http://yogapants.ewb.ai:8080/data?test=test", {
 
-    fetch("http://yogapants.ewb.ai:8080/data?resultset="+resultset)
+    fetch("http://mx.ewb.ai:8080/myapp?keywords="+resultset)
       .then(response => response.json())
       .then((result) => {
         console.log("result");
         //console.log(result);
         this.setState({
           loading: false,
-          data: result.data,
-          columns: result.columns
+          data: result.data
         });
       })
       .catch((err) => {
@@ -305,13 +245,26 @@ class App extends React.Component {
     //console.log(data);
     if (data.length <= 0)
       return data;
-
-    return Object.keys(data[0]).map(key => {
+    
+    let headers = {'condition_conditionDisplayName':'condition','listingInfo_bestOfferEnabled':'Has BestOffer','listingInfo_buyItNowAvailable':'Has BuyItNow','listingInfo_endTime':'EndTime','listingInfo_listingType':'ListingType','listingInfo_watchCount':'WatchCount','returnsAccepted':'Can Return','sellingStatus_convertedCurrentPrice_content':'Current Price','sellingStatus_timeLeft':'Time Left','shippingInfo_handlingTime':'Handling Time','shippingInfo_shipToLocations':'ShipTo'};
+    let whitelist = ['error','condition_conditionDisplayName','country','itemId','listingInfo_bestOfferEnabled','listingInfo_buyItNowAvailable','listingInfo_endTime','listingInfo_listingType','listingInfo_watchCount','location','returnsAccepted','sellingStatus_convertedCurrentPrice_content','sellingStatus_timeLeft','shippingInfo_handlingTime','shippingInfo_shipToLocations','title','viewItemURL'];
+    //
+    return Object.keys(data[0]).filter( key => whitelist.indexOf(key) >= 0)
+      .map(key => {
       let column = {
         Header: key,
         accessor: key
       };
-      if (key.match(/url/)) {
+      
+      if (headers[key] != null) {
+        column.Header = headers[key]
+      }
+      let str = column.Header
+      column.Header = str.slice(0, 1).toUpperCase() + str.substr(1,str.length);
+
+      //  view data munger
+      //
+      if (key.match(/[Uu][Rr][Ll]/)) {
         column.Cell = row => (
           <a href={row.value} target="_blank">{key}</a>
         )
@@ -321,15 +274,17 @@ class App extends React.Component {
   }
   render() {
     const columns = this.getColumns();
-    const { data } = this.state;
+    const { data, rows, pages } = this.state;
     return (
       <div>
       <div>
-  <SearchBar handleSubmit={this.fetchData} display="type a class and hit Enter"/>
+  <SearchBar handleSubmit={this.fetchData} keywords="type some keywords"/>
       </div>
         <ReactTable
+      manual
       data={data}
       columns={columns}
+      pages={pages}
       loading={this.state.loading}
       loadingText={this.state.loadingText}
       defaultPageSize={20}
