@@ -1,4 +1,5 @@
 import React from "react";
+import rightNowOnEbaySmall from "./ebay.gif";
 import namor from "namor";
 
 const range = len => {
@@ -32,6 +33,15 @@ export function makeData(len = 5553) {
     };
   });
 }
+
+export const LogoEbay = () =>
+  <div style={{ margin: '1rem auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center'}}>
+  <br />
+      <img
+        src={rightNowOnEbaySmall}
+        style={{ width: `150px`, margin: ".5em auto .3em" }}
+      />
+  </div>;
 
 export const Logo = () =>
   <div style={{ margin: '1rem auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center'}}>

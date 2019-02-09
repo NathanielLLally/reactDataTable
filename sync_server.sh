@@ -1,5 +1,4 @@
 #!/bin/sh
-
 SSH_AUTH_SOCK=${SSH_AUTH_SOCK:/tmp/$USER.sock}
 #PWD=$(pwd)
 #SRCDIR=$PWD/build/
