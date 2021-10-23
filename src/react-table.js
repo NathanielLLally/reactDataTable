@@ -174,7 +174,7 @@ class Table extends React.Component {
     console.log("sending post request");
     //orkerGlobalScope.fetch("http://yogapants.ewb.ai:8080/data?test=test", {
 
-    fetch("http://yogapants.ewb.ai:8080/data", {
+    fetch("http://skyhawk.grandstreet.group:8080/data", {
       method : 'POST',
       headers: {
         'Content-Type': 'application/json',

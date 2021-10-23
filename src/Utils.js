@@ -1,5 +1,5 @@
 import React from "react";
-import rightNowOnEbaySmall from "./ebay.gif";
+import rightNowOnEbaySmall from "./ebay-rightnow-vert.png";
 import namor from "namor";
 
 const range = len => {

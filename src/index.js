@@ -204,7 +204,7 @@ class App extends React.Component {
       Qstr = '?'+Qstr;
 
     console.log("sending get request, Query String: ["+Qstr+"]");
-    fetch("http://mx.ewb.ai:8080/myapp"+Qstr)
+    fetch("http://skyhawk.grandstreet.group:8080/myapp"+Qstr)
       .then(response => response.json())
       .then((result) => {
         console.log("result");
